@@ -1,0 +1,13 @@
+- name: Deploy KeepAliveD
+  hosts:
+    - all
+
+  # become: true  # This shouldn't occour at the playbook level
+  gather_facts: true
+
+  roles:
+    - tfindley.highavailability.keepalived
+
+  # vars:
+    # keepalived_enabled: true
+    # keepalived_vip:  # This should be a list of IP's (not CIDR format)
