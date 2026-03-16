@@ -1,0 +1,6 @@
+---
+- name: Test haproxy
+  hosts: localhost
+  remote_user: root
+  roles:
+    - haproxy
