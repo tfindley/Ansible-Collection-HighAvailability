@@ -18,21 +18,24 @@ These are designed to do very simple deployments of KeepAliveD. It is recommende
 
 | Variable Name                           | Type    | Required | default value         | Description |
 | --------------------------------------- | ------- | -------- | --------------------- | ----------- |
-| `keepalived_vip`                        | list    | True     | ''                    | The IP Addresses you wish to set as Virtual IP |
-| `keepalived_vrid`                       | int     | True     | `123`                 | Your VRRP Virtual Router ID. Do not duplicate these on the same network | 
+| `keepalived_vip`                        | list    | True     | `["192.168.69.201"]`  | The IP Addresses you wish to set as Virtual IP |
+| `keepalived_vrid`                       | int     | True     | `123`                 | Your VRRP Virtual Router ID. Do not duplicate these on the same network |
 | `keepalived_priority`                   | int     | True     | `100`                 | for electing MASTER, highest priority wins |
 | `keepalived_state`                      | string  | True     | `BACKUP`              | This can either be `MASTER`, or `BACKUP`. To prevent service flapping, it is suggested to use `BACKUP` on all nodes and set the priority equally on each node. |
+| `keepalived_unicast_mode`               | boolean | False    | `false`               | When `true`, VRRP adverts are sent via unicast instead of multicast. Requires `unicast_src_ip` and `unicast_peer` to be set on each VRRP instance. Use multicast (default) unless your network does not support it. |
 
 ### Global Variables
 
 | Variable Name                           | Type    | Required | default value         | Description |
 | --------------------------------------- | ------- | -------- | --------------------- | ----------- |
-| `keepalived_max_auto_priority`          | string  | True     | `99`                  | To limit the maximum increased automatic priority, specify the following. (0 doesn't use automatic priority increases, and is the default. -1 disables the warning message at startup). Omitting the priority sets the maximum value. |
-| `keepalived_vrrp_version`               | int     | False    | `2`                   | Set the default VRRP version to use. (default: 2, but IPv6 instances will use version 3) | 
-| `keepalived_router_id`                  | string  | False    |                       | String identifying the machine (doesn't have to be hostname) |
-| `keepalived_checkscript_user`           | boolean | True     | `keepalived_script`   | Specify the default username to run scripts under |
-| `keepalived_checkscript_group`          | boolean | True     | `keepalived_script`   | Specify the default groupname to run scripts under |
-| `keepalived_checkscript_path`           | boolean | True     | *See below*           | *See below* |
+| `keepalived_max_auto_priority`          | int     | True     | `99`                  | To limit the maximum increased automatic priority, specify the following. (0 doesn't use automatic priority increases, and is the default. -1 disables the warning message at startup). Omitting the priority sets the maximum value. |
+| `keepalived_vrrp_version`               | int     | False    | (unset)               | Set the default VRRP version to use. (default: 2, but IPv6 instances will use version 3) |
+| `keepalived_vrrp_strict`                | boolean | False    | `false`               | Enforce strict VRRP protocol compliance. Note: strict mode disallows unicast peers and authentication. See [docs/GLOBAL_VARIABLES.md](docs/GLOBAL_VARIABLES.md) for details. |
+| `keepalived_vrrp_startup_delay`         | float   | False    | (unset)               | Delay in seconds before VRRP instances start after keepalived starts. Useful when bond interfaces are slow to initialise. |
+| `keepalived_router_id`                  | string  | False    | (unset)               | String identifying the machine (doesn't have to be hostname) |
+| `keepalived_checkscript_user`           | string  | True     | `keepalived_script`   | Specify the default username to run scripts under |
+| `keepalived_checkscript_group`          | string  | True     | `keepalived_script`   | Specify the default groupname to run scripts under |
+| `keepalived_checkscript_path`           | string  | True     | *See below*           | *See below* |
 
 ### Checkscript Variables
 
@@ -52,106 +55,130 @@ variables for the `keepalived_vrrp` dictionary instances
 
 | Variable Name              | Type    | Required | default value | Recommended Value | Description |
 | -------------------------- | ------- | -------- | ------------- | ---------------------------------------------------------------------------- | ------------|
-| `name`                     | boolean | True     | `False`       | `VI_1`                                                                       | The unique name of the VRRP instance |
-| `state`                    | string  | True     | `BACKUP`      | `BACKUP`                                                                     | This can either be `MASTER`, or `BACKUP`. To prevent service flapping, it is suggested to use `BACKUP` on all nodes and set the priority equally on each node. |
-| `interface`                | string  | True     | ``            | `"{{ ansible_default_ipv4['alias'] }}"`                                      | interface for inside_network, bound by vrrp. If you want to keep it simple, use the recommended value and it will fetch the alias of the adapter used for your Ansible connection. |
-| `priority`                 | int     | True     | ``            | `100`                                                                        | for electing MASTER, highest priority wins |
-| `virtual_router_id`        | int     | True     | ``            | ``                                                                           | Your VRRP Virtual Router ID. Do not duplicate these on the same network! |
-| `advert_int`               | int     | True     | ``            | `1`                                                                          | VRRP Advert interval in seconds |
-| `garp`                     | dict    | False    | ``            |                                                                              | Dictionary for the entries below. |
-|  - `master_refresh`        | int     | False    | ``            | `5`                                                                          | minimum time interval for refreshing gratuitous ARPs while MASTER |
-|  - `master_refresh_repeat` | int     | False    | ``            | `1`                                                                          | number of gratuitous ARP messages to send at a time while MASTER |
-| `authentication`           | dict    | False    | ``            |                                                                              | Use of this option is non-compliant and can cause problems; avoid |
-|  - `type`                  | string  | False    | ``            | `PASS`                                                                       | PASS - Simple password (suggested), AH - IPSEC (not recommended) |
-|  - `pass`                  | string  | False    | ``            | `"{{ lookup('community.general.random_string', length=8, special=false) }}"` | Password for accessing vrrpd. should be the same on all machines. Only the first eight (8) characters are used.|
-| `unicast_src_ip`           | string  | True     | ``            | `"{{ ansible_default_ipv4.address }}"`                                       | default IP for binding vrrpd is the primary IP on interface. If you want to hide the location of vrrpd, use this IP as src_addr for multicast or unicast vrrp packets. (since it's multicast, vrrpd will get the reply packet no matter what src_addr is used). |
-| `unicast_peer`             | string  | False    | ``            | `"{{ keepalived_iplist }}"`                                                  | Use the default value here to automatically populate a list of all hosts in the play. Do not send VRRP adverts over a VRRP multicast group. Instead it sends adverts to the following list of ip addresses using unicast.  `<IPADDR> [min_ttl {0..255}] [max_ttl {0..255}]` |
-| `vip`                      | list    | True     | `[]`          | ``                                                                           | The IP Addresses you wish to set as Virtual IP |
-| `checkscript`              | list    | False    | `[]`          | ``                                                                           | The list of checkscripts that you wish to call for this VRRP instance. These must match a name value for the checkscript dictionary below. |
+| `name`                     | string  | True     | (none)        | `VI_1`                                                                       | The unique name of the VRRP instance |
+| `state`                    | string  | False    | `BACKUP`      | `BACKUP`                                                                     | This can either be `MASTER`, or `BACKUP`. To prevent service flapping, it is suggested to use `BACKUP` on all nodes and set the priority equally on each node. |
+| `interface`                | string  | True     | (none)        | `"{{ ansible_facts['default_ipv4']['alias'] }}"`                                      | Interface bound by VRRP. The recommended value automatically uses the interface Ansible connects over. |
+| `priority`                 | int     | True     | (none)        | `100`                                                                        | For electing MASTER, highest priority wins |
+| `virtual_router_id`        | int     | True     | (none)        | (none)                                                                       | Your VRRP Virtual Router ID (1–255). Do not duplicate these on the same network! |
+| `advert_int`               | int     | True     | (none)        | `1`                                                                          | VRRP advert interval in seconds |
+| `garp`                     | dict    | False    | (none)        |                                                                              | Gratuitous ARP settings. See sub-keys below. |
+|  - `master_refresh`        | int     | False    | (none)        | `5`                                                                          | Minimum time interval (seconds) for refreshing gratuitous ARPs while MASTER |
+|  - `master_refresh_repeat` | int     | False    | (none)        | `1`                                                                          | Number of gratuitous ARP messages to send at a time while MASTER |
+| `authentication`           | dict    | False    | (none)        |                                                                              | VRRP v2 only. Non-compliant with RFC; use with caution. |
+|  - `type`                  | string  | False    | (none)        | `PASS`                                                                       | `PASS` — simple password (suggested), `AH` — IPSEC (not recommended) |
+|  - `pass`                  | string  | False    | (none)        | `"{{ lookup('community.general.random_string', length=8, special=false) }}"` | Password for accessing vrrpd. Must be the same on all nodes. Only the first 8 characters are used. |
+| `unicast_src_ip`           | string  | False    | (none)        | `"{{ ansible_facts['default_ipv4']['address'] }}"`                                       | Source IP for unicast VRRP adverts. Required when `unicast_peer` is set. Omit for multicast mode. |
+| `unicast_peer`             | list    | False    | (none)        | `"{{ keepalived_iplist }}"`                                                  | List of peer IPs to send unicast VRRP adverts to instead of multicast. Use `keepalived_iplist` to auto-populate from all hosts in the play. Omit to use multicast. |
+| `vip`                      | list    | True     | (none)        | (none)                                                                       | The IP address(es) to use as Virtual IP. Must be a list. |
+| `checkscript`              | list    | False    | (none)        | (none)                                                                       | List of checkscript names to track for this VRRP instance. Each entry must match a `name` value in `keepalived_checkscript_scripts`. |
 
 ### Keepalived Checkscript Scripts
 
-| Variable Name | Type    | Required | default value | Recommended Value   | Description |
-| ------------- | ------- | -------- | ------------- | ------------------- | ------------|
-| `name`        | boolean | True     | ``            | `name_of_script`    | The name of the script. This must be called in the `vrrp.[0].checkscript` list. |
-| `filename`    | string  | True     | ''            | `name_of_script.py` | The name of the script that will be created, including the filetype. |
-| `exec`        | string  | True     | ''            | `--opt_flag value ` | Any flags or options you wish to pass to the script |
-| `content`     | string  | True     | *See Below*   | *See Below*         | *See Below* |
-| `mode`        | string  | True     | ''            | `0700`              | Make the script executable |
-| `interval`    | int     | True     | ''            | `2`                 | Run script every 2 seconds |
-| `fall`        | int     | True     | ''            | `1`                 | If script returns non-zero 2 times in succession, enter FAULT state |
-| `rise`        | int     | True     | ''            | `3`                 | If script returns zero r times in succession, exit FAULT state |
-| `timeout`     | int     | True     | ''            | `2`                 | Wait up to t seconds for script before assuming non-zero exit code |
-| `weight`      | int     | True     | ''            | `50`                | Reduce priority by 50 on fall |
+There are three modes for defining a checkscript. Use **exactly one** of `filename` or `command` per entry.
 
-### Checkscript Content
+| Variable Name | Type    | Required        | default value | Description |
+| ------------- | ------- | --------------- | ------------- | ----------- |
+| `name`        | string  | True            | (none)        | Unique name for this script. Must be referenced in `vrrp[*].checkscript` to be tracked. |
+| `filename`    | string  | Mode 1 & 2 only | (none)        | Filename of the script to deploy. Mutually exclusive with `command`. |
+| `command`     | string  | Mode 3 only     | (none)        | Command or binary on the managed host to run directly. Can be a bare command name (`systemctl`) or full path (`/usr/bin/systemctl`). Mutually exclusive with `filename`. |
+| `content`     | string  | Mode 1 only     | (none)        | File content to upload. If omitted when using `filename`, the file must exist in the role's `files/` directory (mode 2). |
+| `exec`        | string  | False           | (none)        | Arguments or flags appended to the script/command. |
+| `mode`        | string  | Mode 1 & 2 only | `0700`        | File permissions for the deployed script. |
+| `interval`    | int     | True            | (none)        | Run the check every N seconds. |
+| `fall`        | int     | True            | (none)        | Enter FAULT state after N consecutive non-zero exits. |
+| `rise`        | int     | True            | (none)        | Exit FAULT state after N consecutive zero exits. |
+| `timeout`     | int     | True            | (none)        | Seconds to wait before assuming non-zero exit. |
+| `weight`      | int     | True            | (none)        | Adjust VRRP priority by this value on FAULT (negative reduces priority). |
 
 ## Checkscripts
 
-### Hashicorp Vault
+### Mode 1 — Custom script upload
 
-To use this script in the `keepalived_checkscript_scripts.[0]`, set the following fields:
+Upload a script from your deployment host to the managed node. Use `content` with a `lookup()` to read the file.
 
 ```yaml
 vars:
-    keepalived_vrrp:
-      - name: VI_1
-        ...
-        checkscript:
-          - vault_active_node_script
+  keepalived_checkscript_enabled: true
 
-    keepalived_checkscript_enabled: true
+  keepalived_vrrp:
+    - name: VI_1
+      vip: "{{ keepalived_vip }}"
+      checkscript:
+        - check_vault
 
-    keepalived_checkscript_scripts:
-      - name: vault_active_node_script
-        filename: check_vault.py
-        exec: --timeout=1 --url='https://127.0.0.1:8200'
-        content: "{{ lookup('ansible.builtin.file', 'hashicorp/vault/check_vault.py') }}"
-        mode: '0700'
-        interval: 2  # Run script every 2 seconds
-        fall: 1  # If script returns non-zero 2 times in succession, enter FAULT state
-        rise: 3  # If script returns zero r times in succession, exit FAULT state
-        timeout: 2  # Wait up to t seconds for script before assuming non-zero exit code
-        weight: 50  # Reduce priority by 50 on fall
+  keepalived_checkscript_scripts:
+    - name: check_vault
+      filename: check_vault.py
+      content: "{{ lookup('ansible.builtin.file', 'hashicorp/vault/check_vault.py') }}"
+      exec: --timeout=1 --url='https://127.0.0.1:8200'
+      mode: '0700'
+      interval: 2
+      fall: 1
+      rise: 3
+      timeout: 2
+      weight: 50
 ```
 
-### Grafana Server
+### Mode 2 — Bundled role script
 
-**WARNING:** This script requires the python3-click module to be installed. It is recommended you install using a `pretask` section of your playbook. i.e:
+Use a script already included in this role's `files/` directory. Omit `content` — the role copies it automatically.
+
+**WARNING:** The Grafana script requires the `python3-click` package. Install it in a `pre_tasks` block:
 
 ```yaml
-- name: Install Python3 Click reqreq
-  become: true
-  ansible.builtin.package:
-    name: python3-click
-    state: present
-
+pre_tasks:
+  - name: Install Python3 Click
+    become: true
+    ansible.builtin.package:
+      name: python3-click
+      state: present
 ```
 
-To use this script in the `keepalived_checkscript_scripts.[0]`, set the following fields:
+```yaml
+vars:
+  keepalived_checkscript_enabled: true
+
+  keepalived_vrrp:
+    - name: VI_1
+      vip: "{{ keepalived_vip }}"
+      checkscript:
+        - check_grafana
+
+  keepalived_checkscript_scripts:
+    - name: check_grafana
+      filename: check_grafana_health_api.py
+      exec: --url http://localhost:3000/api/health --field database --response ok --timeout 3 --quiet
+      mode: '0700'
+      interval: 2
+      fall: 1
+      rise: 3
+      timeout: 2
+      weight: 50
+```
+
+### Mode 3 — System command
+
+Run a command or binary already present on the managed host. No file is copied. Use `command` instead of `filename`.
 
 ```yaml
+vars:
+  keepalived_checkscript_enabled: true
 
-  vars:
-    keepalived_vrrp:
-      - name: VI_1
-        ...
-        checkscript:
-          - check_grafana_health_api
+  keepalived_vrrp:
+    - name: VI_1
+      vip: "{{ keepalived_vip }}"
+      checkscript:
+        - check_haproxy
 
-    keepalived_checkscript_enable: true
-
-    keepalived_checkscript_scripts:
-      - name: check_grafana_health_api
-        filename: check_grafana_health_api.py
-        exec: --url http://localhost:3000/api/health --field database --response ok --timeout 3 --quiet'
-        content: "{{ lookup('ansible.builtin.file', 'generic/check_json_api.py') }}"
-        mode: '0700'
-        interval: 2  # Run script every 2 seconds
-        fall: 1  # If script returns non-zero 2 times in succession, enter FAULT state
-        rise: 3  # If script returns zero r times in succession, exit FAULT state
-        timeout: 2  # Wait up to t seconds for scrip
-
+  keepalived_checkscript_scripts:
+    - name: check_haproxy
+      command: systemctl          # bare name or full path, e.g. /usr/bin/systemctl
+      exec: is-active --quiet haproxy
+      interval: 2
+      fall: 2
+      rise: 2
+      timeout: 2
+      weight: -20
 ```
 
 ## Dependencies

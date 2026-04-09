@@ -5,7 +5,6 @@
   ansible.posix.sysctl:
     name: net.ipv4.ip_nonlocal_bind
     value: '1'
-    sysctl_set: true
     state: present
     reload: true
 

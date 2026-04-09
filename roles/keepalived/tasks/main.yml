@@ -44,15 +44,15 @@
 # UFW
 - name: KeepAliveD.Main - Hand off to UFW task
   when:  # Only execute this task if UFW is deteted as installed.
-    - "'ufw' in services"
-    - ansible_facts.services['ufw'].state == 'running'
+    - "'ufw' in ansible_facts['services']"
+    - ansible_facts['services']['ufw'].state == 'running'
   ansible.builtin.include_tasks:
     file: firewall/ufw.yml
 
 # FirewallD
 - name: KeepAliveD.Main - Hand off to FirewallD task
   when:  # Only execute this task if firewalld is deteted as installed.
-    - "'firewalld.service' in services"
-    - ansible_facts.services['firewalld.service'].state == 'running'
+    - "'firewalld.service' in ansible_facts['services']"
+    - ansible_facts['services']['firewalld.service'].state == 'running'
   ansible.builtin.include_tasks:
     file: firewall/firewalld.yml

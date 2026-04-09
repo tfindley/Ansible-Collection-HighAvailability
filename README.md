@@ -6,18 +6,20 @@ This HighAvailability colletion wraps up HA tooling into a single collection for
 
 ## Compatibility
 
-| Ansible Core | Tested |
-| ------------ | ------ |
-| 2.18         | ✅     |
-| 2.19         | ✅     |
+| Ansible Core   | Tested |
+| -------------- | ------ |
+| 2.18           | ✅     |
+| 2.19           | ✅     |
+| 2.20           | ✅     |
+| 2.24 (preview) | ✅     |
 
 
-| Ansible Feature | Working | Notes               |
-| --------------- | ------- | ------------------- |
-| `--diff` mode   | ✅      |                     |
-| `--check` mode  | ✅      |                     |
-| Idempotency     | ✅      |                     |
-| Linting         | ✅      |                     |
+| Ansible Feature | Working | Notes |
+| --------------- | ------- | ----- |
+| `--diff` mode   | ✅      |       |
+| `--check` mode  | ✅      |       |
+| Idempotency     | ✅      |       |
+| Linting         | ✅      |       |
 
 ## Roles
 
@@ -39,15 +41,20 @@ This will deploy KeepAliveD but with basic PASSWORD authentication enabled and t
 
 ## Variables
 
-| Variable                         | Type      | Required | Description                     | Default Value     |
-| -------------------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------- | ----------------- |
-| `keepalived_enabled`             | bool      | Yes      | Boolean value to enable the use of the keepalived role as a safeguard.                          |                   |
-| `keepalived_vip`                 | list      | Yes      | `xyz.xyz.xyz.xyz` format IP address in a list format `[]`. Must specify at least one IP address |                   |
-| `keepalived_vrid`                | int       | Yes      | Your virtual router ID. IMPORTANT: On a network you cannot have conflicting Virtual Router IDs  | `123`             |
-| `keepalived_pass`                | string    | No       | Specify a password. Only used in the `keepalived_pass` and `keepalived_hashivault` sample plays |                   |
-| `keepalived_state`               | string    | No       | The state of the node in the KeepAliveD cluster. Recommended to leave all nodes as backup       | `BACKUP`          |
-| `keepalived_vrrp_version`        | int       | No       | Set the VRRP version you wish to use. I would not recommend changing from 2                     | `2`               |
-| `keepalived_vrrp`                | dict      | No       | See below - Required if you want to control how KeepAliveD is deployed beyond the sample plays  |                   |
+| Variable                  | Type   | Required | Description                                                                                     | Default Value |
+| ------------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------- | ------------- |
+| `keepalived_enabled`      | bool   | Yes      | Boolean value to enable the use of the keepalived role as a safeguard.                          |               |
+| `keepalived_vip`          | list   | Yes      | `xyz.xyz.xyz.xyz` format IP address in a list format `[]`. Must specify at least one IP address |               |
+| `keepalived_vrid`         | int    | Yes      | Your virtual router ID. IMPORTANT: On a network you cannot have conflicting Virtual Router IDs  | `123`         |
+| `keepalived_pass`         | string | No       | Specify a password. Only used in the `keepalived_pass` and `keepalived_hashivault` sample plays |               |
+| `keepalived_state`        | string | No       | The state of the node in the KeepAliveD cluster. Recommended to leave all nodes as backup       | `BACKUP`      |
+| `keepalived_vrrp_version` | int    | No       | Set the VRRP version you wish to use. I would not recommend changing from 2                     | `2`           |
+| `keepalived_vrrp`         | dict   | No       | See below - Required if you want to control how KeepAliveD is deployed beyond the sample plays  |               |
+
+| Variable                      | Type | Required | Description                                                                        | Default Value |
+| ----------------------------- | ---- | -------- | ---------------------------------------------------------------------------------- | ------------- |
+| keepalived_vrrp_startup_delay | int  | No       | See: [Documentation](roles/keepalived/docs/GLOBAL_VARIABLES.md#vrrp_startup_delay) | unset         |
+| keepaived_vrrp_strict: true   | bool | No       | See: [Documentation](roles/keepalived/docs/GLOBAL_VARIABLES.md#vrrp_strict)        | unset |
 
 ```yaml
 keepalived_vrrp:
@@ -70,13 +77,13 @@ keepalived_vrrp:
         - random_check_script
 ```
 
-| Variable                         | Type      | Required | Description                     | Default Value     |
-| -------------------------------- | --------- | -------- | ----------------------------------------------------------------------------------------------- | ------------------  |
-| `keepalived_checkscript_enabled` | bool      | No       | set to true to enable checkscript support and incldue the following vars                        | `False`             |
-| `keepalived_checkscript_user`    | string    | No       | The user that will be used to execute check scripts with KeepAliveD (Cannot be a root user)     | `keepalived_script` |
-| `keepalived_checkscript_group`   | string    | No       | The group for the user that will be used to execute check scripts with KeepAliveD               | `keepalived_script` |
-| `keepalived_checkscript_path`    | string    | No       | The default path for the checkscript storage location. use this to override the role default    | `"{{ keepalived_checkscript_dir }}"` |
-| `keepalived_checkscript_scripts` | dict      | No       | See below - Required if you want to control how KeepAliveD is deployed beyond the sample plays  |                   |
+| Variable                         | Type   | Required | Description                                                                                    | Default Value                        |
+| -------------------------------- | ------ | -------- | ---------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `keepalived_checkscript_enabled` | bool   | No       | set to true to enable checkscript support and incldue the following vars                       | `False`                              |
+| `keepalived_checkscript_user`    | string | No       | The user that will be used to execute check scripts with KeepAliveD (Cannot be a root user)    | `keepalived_script`                  |
+| `keepalived_checkscript_group`   | string | No       | The group for the user that will be used to execute check scripts with KeepAliveD              | `keepalived_script`                  |
+| `keepalived_checkscript_path`    | string | No       | The default path for the checkscript storage location. use this to override the role default   | `"{{ keepalived_checkscript_dir }}"` |
+| `keepalived_checkscript_scripts` | dict   | No       | See below - Required if you want to control how KeepAliveD is deployed beyond the sample plays |                                      |
 
 ```yaml
 keepalived_checkscript_enabled: true  # set to true to enable checkscript support and incldue the following vars

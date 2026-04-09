@@ -2,6 +2,9 @@
 
 - name: "KeepAliveD.Check - Create Vault Check Script directory"
   become: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  when:
+    - keepalived_checkscript_scripts | selectattr('command', 'undefined') | list | length > 0
   ansible.builtin.file:
     path: "{{ keepalived_checkscript_path }}"
     state: directory
@@ -15,7 +18,11 @@
     - "KeepAliveD Restart"
   loop: "{{ keepalived_checkscript_scripts }}"
   loop_control:
-    label: "{{ item.filename }}"
+    label: "{{ item.command | default(item.filename) }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  when:
+    - item.command is not defined
+    - item.content is defined and item.content | length > 1
   ansible.builtin.copy:
     dest: "{{ keepalived_checkscript_path }}/{{ item.filename }}"
     content: "{{ item.content }}"

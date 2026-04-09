@@ -12,12 +12,22 @@ global_defs {
     enable_script_security
     script_user {{ keepalived_checkscript_user }} {{ keepalived_checkscript_group }}
 {% endif %}
+{% if keepalived_vrrp_startup_delay is defined %}
+    vrrp_startup_delay {{ keepalived_vrrp_startup_delay }}
+{% endif %}
+{% if keepalived_vrrp_strict | bool %}
+    vrrp_strict
+{% endif %}
 }
 
 {% if keepalived_checkscript_enabled | bool %}
 {% for script in keepalived_checkscript_scripts %}
 vrrp_script {{ script.name }} {
-    script      "{{ keepalived_checkscript_path }}/{{ script.filename }} {{ script.exec | default(nul) }}"
+{% if script.command is defined %}
+    script      "{{ script.command }} {{ script.exec | default('') }}"
+{% else %}
+    script      "{{ keepalived_checkscript_path }}/{{ script.filename }} {{ script.exec | default('') }}"
+{% endif %}
     interval    {{ script.interval }}
     fall        {{ script.fall }}
     rise        {{ script.rise }}
@@ -47,12 +57,14 @@ vrrp_instance {{ vrrp.name }} {
     garp_master_refresh         {{ vrrp.garp.master_refresh }}
     garp_master_refresh_repeat  {{ vrrp.garp.master_refresh_repeat }}
 {% endif %}
+{% if keepalived_unicast_mode | bool and vrrp.unicast_src_ip is defined and vrrp.unicast_peer is defined and vrrp.unicast_peer | length > 0 %}
     unicast_src_ip              {{ vrrp.unicast_src_ip | ansible.utils.ipaddr }}
     unicast_peer {
 {% for peerip in vrrp.unicast_peer | sort %}
         {{ peerip | ansible.utils.ipaddr }}
 {% endfor %}
     }
+{% endif %}
 
     virtual_ipaddress {
 {% for vip in vrrp.vip %}
@@ -60,10 +72,12 @@ vrrp_instance {{ vrrp.name }} {
 {% endfor %}
     }
 
-{% if keepalived_checkscript_enabled | bool %}{% for script in vrrp.checkscript %}
+{% if keepalived_checkscript_enabled | bool and vrrp.checkscript is defined and vrrp.checkscript | length > 0 %}
     track_script {
+{% for script in vrrp.checkscript %}
         {{ script }}
+{% endfor %}
     }
-{% endfor %}{% endif %}
+{% endif %}
 }
 {% endfor %}
