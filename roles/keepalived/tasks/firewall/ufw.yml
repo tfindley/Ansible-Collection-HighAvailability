@@ -16,12 +16,16 @@
     insertbefore: "# don't delete the 'COMMIT' line or these rules won't be processed"
     block: |
       # Required rules for KeepAliveD
-      {% for item in keepalived_vip %}
-      -A ufw-before-output -p Ah -d {{ item | ansible.utils.ipaddr }} -j ACCEPT
-      -A ufw-before-output -p vrrp -d {{ item | ansible.utils.ipaddr }} -j ACCEPT
+      {% for vrrp_inst in keepalived_vrrp %}
+      {% for vip in vrrp_inst.vip %}
+      -A ufw-before-output -p Ah -d {{ vip | ansible.utils.ipaddr }} -j ACCEPT
+      -A ufw-before-output -p vrrp -d {{ vip | ansible.utils.ipaddr }} -j ACCEPT
       {% endfor %}
-      {% for item in keepalived_unicast_peer %}
-      -A ufw-before-output -p Ah -d {{ item | ansible.utils.ipaddr }} -j ACCEPT
-      -A ufw-before-output -p vrrp -d {{ item | ansible.utils.ipaddr }} -j ACCEPT
+      {% if keepalived_unicast_mode | bool and vrrp_inst.unicast_peer is defined and vrrp_inst.unicast_peer | length > 0 %}
+      {% for peer in vrrp_inst.unicast_peer %}
+      -A ufw-before-output -p Ah -d {{ peer | ansible.utils.ipaddr }} -j ACCEPT
+      -A ufw-before-output -p vrrp -d {{ peer | ansible.utils.ipaddr }} -j ACCEPT
+      {% endfor %}
+      {% endif %}
       {% endfor %}
   notify: "UFW Reload"

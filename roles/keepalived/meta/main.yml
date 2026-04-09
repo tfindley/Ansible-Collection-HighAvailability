@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: MIT-0
 galaxy_info:
-  author: Tristan Findleyu
+  author: Tristan Findley
   namespace: tfindley
   description: Deploy and Configure KeepAliveD
   company: TFindley
@@ -18,7 +18,7 @@ galaxy_info:
   # - CC-BY-4.0
   license: MIT
 
-  min_ansible_version: '2.12'
+  min_ansible_version: '2.17'
 
   # If this a Container Enabled role, provide the minimum Ansible Container version.
   # min_ansible_container_version:

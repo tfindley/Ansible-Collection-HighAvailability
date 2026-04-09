@@ -17,23 +17,23 @@
 
 # ----------
 
-- name: "FirewallD Start"
-  become: true
-  ansible.builtin.service:
-    name: firewalld
-    state: started
+# - name: "FirewallD Start"
+#   become: true
+#   ansible.builtin.service:
+#     name: firewalld
+#     state: started
 
-- name: "FirewallD Restart"
-  become: true
-  ansible.builtin.service:
-    name: firewalld
-    state: restarted
+# - name: "FirewallD Restart"
+#   become: true
+#   ansible.builtin.service:
+#     name: firewalld
+#     state: restarted
 
-- name: "FirewallD Stop"
-  become: true
-  ansible.builtin.service:
-    name: firewalld
-    state: stopped
+# - name: "FirewallD Stop"
+#   become: true
+#   ansible.builtin.service:
+#     name: firewalld
+#     state: stopped
 
 - name: "FirewallD Reload"
   become: true
@@ -41,11 +41,11 @@
     name: firewalld
     state: reloaded
 
-- name: "FirewallD Enabled"
-  become: true
-  ansible.builtin.service:
-    name: firewalld
-    enabled: true
+# - name: "FirewallD Enabled"
+#   become: true
+#   ansible.builtin.service:
+#     name: firewalld
+#     enabled: true
 
 # ----------
 
@@ -55,11 +55,11 @@
     name: keepalived
     state: started
 
-- name: "KeepAliveD Stop"
-  become: true
-  ansible.builtin.service:
-    name: keepalived
-    state: stopped
+# - name: "KeepAliveD Stop"
+#   become: true
+#   ansible.builtin.service:
+#     name: keepalived
+#     state: stopped
 
 - name: "KeepAliveD Restart"
   become: true
@@ -67,11 +67,11 @@
     name: keepalived
     state: restarted
 
-- name: "KeepAliveD Reload"
-  become: true
-  ansible.builtin.service:
-    name: keepalived
-    state: reloaded
+# - name: "KeepAliveD Reload"
+#   become: true
+#   ansible.builtin.service:
+#     name: keepalived
+#     state: reloaded
 
 - name: "KeepAliveD Enabled"
   become: true
@@ -79,8 +79,8 @@
     name: keepalived
     enabled: true
 
-- name: "KeepAliveD Enabled"
-  become: true
-  ansible.builtin.service:
-    name: keepalived
-    enabled: false
+# - name: "KeepAliveD Disabled"
+#   become: true
+#   ansible.builtin.service:
+#     name: keepalived
+#     enabled: false

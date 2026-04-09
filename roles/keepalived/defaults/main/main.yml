@@ -5,24 +5,28 @@
 keepalived_enabled: false  # Override this to enable keepalived
 
 # Helper variables - only usable if keepalived_vrrp isnt overriden)
-keepalived_vip: 192.168.69.201
+keepalived_vip:
+  - 192.168.69.201
 keepalived_vrid: 123
 keepalived_priority: 100
 keepalived_state: "BACKUP"
+keepalived_unicast_mode: false  # Set to true to use unicast instead of multicast for VRRP adverts
 
 # Global Defs
 keepalived_max_auto_priority: 99
 keepalived_vrrp_version: 2  # I dont recommend changing this unless you need to use authentication
 keepalived_checkscript_enabled: false
+keepalived_vrrp_strict: false
 keepalived_checkscript_user: keepalived_script
 keepalived_checkscript_group: keepalived_script
 keepalived_checkscript_path: "{{ keepalived_checkscript_dir }}"
+# keepalived_vrrp_startup_delay:
 
 # VRRP
 keepalived_vrrp:
   - name: VI_1
     state: "{{ keepalived_state | default('BACKUP') }}"
-    interface: "{{ ansible_default_ipv4['alias'] }}"
+    interface: "{{ ansible_facts['default_ipv4']['alias'] }}"
     priority: "{{ keepalived_priority }}"
     virtual_router_id: "{{ keepalived_vrid }}"
     advert_int: 1
@@ -32,8 +36,8 @@ keepalived_vrrp:
     # authentication:  # Only compatible with VRRP Version 2
     #   type: PASS  # or AH
     #   pass: "{{ keepalived_pass }}"  # "{{ lookup('community.general.random_string', length=8, special=false) }}"
-    unicast_src_ip: "{{ ansible_default_ipv4.address }}"  # Shouldn't need to adjust
-    unicast_peer: "{{ keepalived_iplist }}"  # shouldn't be any need to change this - see vars/main.yml
+    # unicast_src_ip: "{{ ansible_facts['default_ipv4']['address'] }}"  # Required when keepalived_unicast_mode: true
+    # unicast_peer: "{{ keepalived_iplist }}"  # Required when keepalived_unicast_mode: true. See vars/main.yml
     vip: "{{ keepalived_vip }}"  # Should be a sequence (list)
     # checkscript: []
 
