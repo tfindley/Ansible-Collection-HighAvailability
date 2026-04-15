@@ -1,0 +1,10 @@
+---
+
+- name: "HAProxy.Preflight - Ensure variables are set"
+  ansible.builtin.assert:
+    that:
+      - haproxy_package_name is defined
+      - haproxy_service_name is defined
+      - haproxy_version_major is defined
+      - haproxy_version_minor is defined
+      - haproxy_version_number is defined

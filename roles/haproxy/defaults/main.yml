@@ -1,2 +1,19 @@
 ---
 # defaults file for haproxy
+haproxy_version_major: 3
+haproxy_version_minor: 3
+haproxy_version_number: "{{ haproxy_version_major }}.{{ haproxy_version_minor }}"
+haproxy_package_name: 'haproxy-awslc'
+haproxy_service_name: 'haproxy'
+haproxy_config_basepath: '/etc/haproxy'
+haproxy_config_file: "{{ haproxy_config_basepath }}/haproxy.cfg"
+haproxy_config_confd: "{{ haproxy_config_basepath }}/conf.d"
+haproxy_service_user: root
+haproxy_service_group: root
+haproxy_nonlocal_bind: true
+
+# Repo vars
+# haproxy_os_family: rhel  # Can be deried from ansible_facts
+haproxy_arch: "{{ ansible_facts['architecture'] }}"  # Can be deried from ansible_facts
+haproxy_rhel_ver: "{{ haproxy_os_abreviation }}{{ ansible_facts['distribution_major_version'] }}"  # Can be deried from ansible_facts
+haproxy_version_repo: "ha{{ haproxy_version_major }}{{ haproxy_version_minor }}"  # Needs to be computed from default var

@@ -1,2 +1,13 @@
 ---
 # vars file for haproxy
+haproxy_package_name: 'haproxy'
+haproxy_service_name: 'haproxy'
+
+
+_haproxy_os_family:
+  RedHat: rhel
+haproxy_os_family: "{{ _haproxy_os_family[ansible_facts['os_family']] }}"
+
+_haproxy_os_abreviation:
+  RedHat: el
+haproxy_os_abreviation: "{{ _haproxy_os_abreviation[ansible_facts['os_family']] }}"

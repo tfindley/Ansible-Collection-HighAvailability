@@ -1,0 +1,44 @@
+---
+
+- name: "HAProxy.SELinux - Search for SELinux policy"
+  become: true
+  changed_when: false
+  failed_when: false
+  register: _haproxy_selinux_polsearch
+  ansible.builtin.command:
+    cmd: semodule -l | grep haproxy_1
+
+- name: "HAProxy.SELinux - Install SELinux policy"
+  become: true
+  when:
+    - _haproxy_selinux_polsearch.rc == 1
+  block:
+    - name: "HAProxy.SELinux - Copy the custom policy type enforcement file"
+      ansible.builtin.copy:
+        src: haproxy_1.te
+        dest: /tmp/haproxy_1.te
+        mode: '0644'
+
+    - name: "HAProxy.SELinux - Compile the policy module"
+      changed_when: true
+      ansible.builtin.command:
+        cmd: checkmodule -M -m -o /tmp/haproxy_1.mod /tmp/haproxy_1.te
+
+    - name: "HAProxy.SELinux - Package the policy module"
+      changed_when: true
+      ansible.builtin.command:
+        cmd: semodule_package -o /tmp/haproxy_1.pp -m /tmp/haproxy_1.mod
+
+    - name: "HAProxy.SELinux - Install the policy module"
+      changed_when: true
+      ansible.builtin.command:
+        cmd: semodule -i /tmp/haproxy_1.pp
+
+    - name: "HAProxy.SELinux - Clean up temporary files"
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/haproxy_1.te
+        - /tmp/haproxy_1.mod
+        - /tmp/haproxy_1.pp

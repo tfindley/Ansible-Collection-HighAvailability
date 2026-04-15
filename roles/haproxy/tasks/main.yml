@@ -1,2 +1,49 @@
 ---
 # tasks file for haproxy
+
+- name: HAProxy.Main - Gather Facts
+  ansible.builtin.setup:
+
+- name: HAProxy.Main - Gather service facts
+  become: false
+  ansible.builtin.service_facts:
+
+# ------
+
+- name: HAProxy.Main - Handoff to Preflight task
+  ansible.builtin.include_tasks:
+    file: "preflight.yml"
+
+- name: HAProxy.Main - Handoff to RedHat Repo task
+  when:
+    - ansible_facts['os_family'] == RedHat
+  ansible.builtin.include_tasks:
+    file: "rhel_repo.yml"
+
+- name: HAProxy.Main - Handoff to Install task
+  ansible.builtin.include_tasks:
+    file: "install.yml"
+
+# ------
+
+- name: HAProxy.Main - Handoff to Config task
+  ansible.builtin.include_tasks:
+    file: "config.yml"
+
+# ------
+
+# UFW
+- name: HAProxy.Main - Hand off to UFW task
+  when:  # Only execute this task if UFW is deteted as installed.
+    - "'ufw' in services"
+    - ansible_facts.services['ufw'].state == 'running'
+  ansible.builtin.include_tasks:
+    file: firewall/ufw.yml
+
+# FirewallD
+- name: HAProxy.Main - Hand off to FirewallD task
+  when:  # Only execute this task if firewalld is deteted as installed.
+    - "'firewalld.service' in services"
+    - ansible_facts.services['firewalld.service'].state == 'running'
+  ansible.builtin.include_tasks:
+    file: firewall/firewalld.yml

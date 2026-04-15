@@ -1,4 +1,4 @@
-Role Name
+HAProxy
 =========
 
 A brief description of the role goes here.

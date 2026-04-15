@@ -1,2 +1,84 @@
 ---
 # handlers file for haproxy
+
+- name: Daemon reload
+  become: true
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+# ----------
+
+- name: "UFW Reload"
+  become: true
+  community.general.ufw:
+    state: reloaded
+
+# ----------
+
+- name: "FirewallD Start"
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+
+- name: "FirewallD Restart"
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: restarted
+
+- name: "FirewallD Stop"
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: stopped
+
+- name: "FirewallD Reload"
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    state: reloaded
+
+- name: "FirewallD Enabled"
+  become: true
+  ansible.builtin.service:
+    name: firewalld
+    enabled: true
+
+# ----------
+
+- name: "HAProxy Start"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    state: started
+
+- name: "HAProxy Stop"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    state: stopped
+
+- name: "HAProxy Restart"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    state: restarted
+
+- name: "HAProxy Reload"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    state: reloaded
+
+- name: "HAProxy Enabled"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    enabled: true
+
+- name: "HAProxy Enabled"
+  become: true
+  ansible.builtin.service:
+    name: "{{ haproxy_service_name }}"
+    enabled: false

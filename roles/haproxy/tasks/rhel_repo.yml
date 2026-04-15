@@ -1,0 +1,11 @@
+---
+
+- name: "HAProxy.Repo - Add official HAProxy Community repository"
+  become: true
+  ansible.builtin.yum_repository:
+    name: HAProxy Community repository
+    description: "Official HAProy Community repository HAProxy {{ haproxy_version_number }}"
+    baseurl: "https://www.haproxy.com/download/haproxy/performance/{{ haproxy_os_family }}/{{ haproxy_version_repo }}/{{ haproxy_rhel_ver }}/{{ haproxy_arch }}/"
+    gpgkey: "https://pks.haproxy.com/linux/community/RPM-GPG-KEY-HAProxy"
+    gpgcheck: true
+    enabled: true
